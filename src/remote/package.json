@@ -1,7 +1,7 @@
 {
-	"name": "cortex-debug-remote",
-	"displayName": "cortex-debug-remote",
-	"description": "Extension to support VSCode remote developent with Cortex-Debug",
+	"name": "general-debug-remote",
+	"displayName": "general-debug-remote",
+	"description": "Extension to support VSCode remote developent with General-Debug",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.63.0"
@@ -10,8 +10,8 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onDebugResolve:cortex-debug",
-		"onCommand:cortex-debug-remote.helloWorld"
+		"onDebugResolve:general-debug",
+		"onCommand:general-debug-remote.helloWorld"
 	],
 	"main": "./dist/extension.js",
 	"publisher": "marus25",
@@ -22,7 +22,7 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "cortex-debug-remote.helloWorld",
+				"command": "general-debug-remote.helloWorld",
 				"title": "Hello World"
 			}
 		]

@@ -1,6 +1,6 @@
 # Cortex Debug
 
-![Visual Studio Code with Cortex-Debug Installed](./images/vs-code-screenshot.png)
+![Visual Studio Code with General-Debug Installed](./images/vs-code-screenshot.png)
 
 Debugging support for ARM Cortex-M Microcontrollers with the following features:
 
@@ -35,7 +35,7 @@ Debugging support for ARM Cortex-M Microcontrollers with the following features:
   * These extensions are considered as dependency of this extension and VSCode should help you install all of them. We will consider make an `Extension Pack` in the future
 
 ### Release Versioning
-Cortex-Debug uses a [versioning system specified by Microsoft](https://code.visualstudio.com/updates/v1_63#_pre-release-extensions) that allows distribution of pre-releases via the marketplace. You can enable (or disable) pre-releases within VSCode for this extension and you will automatically get new pre-releases. By default, pre-releases are disabled. We use pre-releases as allow testing of bug fixes and new features. They allow you participate during the formation of a feature of how an issue gets addressed. [More info about pre-releases](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#prerelease-extensions). To summarize, extensions use [semantic versioning (SemVer)](https://semver.org/) system which in simple terms is `major.minor.patch`. With MS convention, if the `minor` version is `odd`, then it is a pre-release.
+General-Debug uses a [versioning system specified by Microsoft](https://code.visualstudio.com/updates/v1_63#_pre-release-extensions) that allows distribution of pre-releases via the marketplace. You can enable (or disable) pre-releases within VSCode for this extension and you will automatically get new pre-releases. By default, pre-releases are disabled. We use pre-releases as allow testing of bug fixes and new features. They allow you participate during the formation of a feature of how an issue gets addressed. [More info about pre-releases](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#prerelease-extensions). To summarize, extensions use [semantic versioning (SemVer)](https://semver.org/) system which in simple terms is `major.minor.patch`. With MS convention, if the `minor` version is `odd`, then it is a pre-release.
 
 ### Planned Features
 * Additional Graphing Options
@@ -64,7 +64,7 @@ See https://github.com/Marus/cortex-debug/wiki for usage information. This needs
 
 ## How to Build from sources
 * `git clone https://github.com/Marus/cortex-debug.git`
-* `cd cortex-debug`
+* `cd general-debug`
 * Optionally switch to a branch: `git checkout <existing-branch-name>`
 * `npm install`
 * Optional `npm run compile`
@@ -79,7 +79,7 @@ If you want to debug both parts, in `launch.json` use the `Extension + Debug Ser
 ```
             "debugServer": 4711
 ```
-Now, launch a debug session and you wil be able to use the primary VSCode window to observe the Cortex-Debug extension
+Now, launch a debug session and you wil be able to use the primary VSCode window to observe the General-Debug extension
 
 ## Acknowledgments
 

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { parseHexOrDecInt } from '../common';
-import { CortexDebugExtension } from './extension';
+import { GeneralDebugExtension } from './extension';
 import { hexFormat } from './utils';
 
 // We have to maintain our own list of what is changed because vscode.TextDocument.isClosed does not work as expected
@@ -58,7 +58,7 @@ export class MemoryContentProvider implements vscode.TextDocumentContentProvider
             const addressExpr = query['address'];
             const length: number = parseHexOrDecInt(query['length']);
 
-            const session = CortexDebugExtension.getActiveCDSession();
+            const session = GeneralDebugExtension.getActiveCDSession();
             if (session) {
                 session.customRequest('read-memory', { address: addressExpr, length: length || 32 }).then((data) => {
                     const bytes = data.bytes;

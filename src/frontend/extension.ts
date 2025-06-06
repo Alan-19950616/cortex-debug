@@ -2,17 +2,17 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { CortexDebugChannel } from '../dbgmsgs';
+import { GeneralDebugChannel } from '../dbgmsgs';
 import { LiveWatchTreeProvider, LiveVariableNode } from './views/live-watch';
 
 import { RTTCore, SWOCore } from './swo/core';
 import {
     ConfigurationArguments, RTTCommonDecoderOpts, RTTConsoleDecoderOpts,
-    CortexDebugKeys, ChainedEvents, ADAPTER_DEBUG_MODE, ChainedConfig } from '../common';
+    GeneralDebugKeys, ChainedEvents, ADAPTER_DEBUG_MODE, ChainedConfig } from '../common';
 import { MemoryContentProvider } from './memory_content_provider';
 import Reporting from '../reporting';
 
-import { CortexDebugConfigurationProvider } from './configprovider';
+import { GeneralDebugConfigurationProvider } from './configprovider';
 import { JLinkSocketRTTSource, SocketRTTSource, SocketSWOSource, PeMicroSocketSource } from './swo/sources/socket';
 import { FifoSWOSource } from './swo/sources/fifo';
 import { FileSWOSource } from './swo/sources/file';
@@ -21,7 +21,7 @@ import { UsbSWOSource } from './swo/sources/usb';
 import { SymbolInformation, SymbolScope } from '../symbols';
 import { RTTTerminal } from './rtt_terminal';
 import { GDBServerConsole } from './server_console';
-import { CDebugSession, CDebugChainedSessionItem } from './cortex_debug_session';
+import { CDebugSession, CDebugChainedSessionItem } from './general_debug_session';
 import { ServerConsoleLog } from '../backend/server';
 
 interface SVDInfo {
@@ -37,7 +37,7 @@ class ServerStartedPromise {
     }
 }
 
-export class CortexDebugExtension {
+export class GeneralDebugExtension {
     private rttTerminals: RTTTerminal[] = [];
 
     private gdbServerConsole: GDBServerConsole = null;
@@ -51,39 +51,39 @@ export class CortexDebugExtension {
     private serverStartedEvent: ServerStartedPromise;
 
     constructor(private context: vscode.ExtensionContext) {
-        const config = vscode.workspace.getConfiguration('cortex-debug');
-        this.startServerConsole(context, config.get(CortexDebugKeys.SERVER_LOG_FILE_NAME, '')); // Make this the first thing we do to be ready for the session
+        const config = vscode.workspace.getConfiguration('general-debug');
+        this.startServerConsole(context, config.get(GeneralDebugKeys.SERVER_LOG_FILE_NAME, '')); // Make this the first thing we do to be ready for the session
         this.memoryProvider = new MemoryContentProvider();
 
         Reporting.activate(context);
 
         this.liveWatchProvider = new LiveWatchTreeProvider(this.context);
-        this.liveWatchTreeView = vscode.window.createTreeView('cortex-debug.liveWatch', {
+        this.liveWatchTreeView = vscode.window.createTreeView('general-debug.liveWatch', {
             treeDataProvider: this.liveWatchProvider
         });
 
-        vscode.commands.executeCommand('setContext', `cortex-debug:${CortexDebugKeys.VARIABLE_DISPLAY_MODE}`,
-            config.get(CortexDebugKeys.VARIABLE_DISPLAY_MODE, true));
+        vscode.commands.executeCommand('setContext', `general-debug:${GeneralDebugKeys.VARIABLE_DISPLAY_MODE}`,
+            config.get(GeneralDebugKeys.VARIABLE_DISPLAY_MODE, true));
 
         context.subscriptions.push(
             vscode.workspace.registerTextDocumentContentProvider('examinememory', this.memoryProvider),
 
-            vscode.commands.registerCommand('cortex-debug.varHexModeTurnOn', this.variablesNaturalMode.bind(this, false)),
-            vscode.commands.registerCommand('cortex-debug.varHexModeTurnOff', this.variablesNaturalMode.bind(this, true)),
-            vscode.commands.registerCommand('cortex-debug.toggleVariableHexFormat', this.toggleVariablesHexMode.bind(this)),
+            vscode.commands.registerCommand('general-debug.varHexModeTurnOn', this.variablesNaturalMode.bind(this, false)),
+            vscode.commands.registerCommand('general-debug.varHexModeTurnOff', this.variablesNaturalMode.bind(this, true)),
+            vscode.commands.registerCommand('general-debug.toggleVariableHexFormat', this.toggleVariablesHexMode.bind(this)),
 
-            vscode.commands.registerCommand('cortex-debug.examineMemory', this.examineMemory.bind(this)),
-            vscode.commands.registerCommand('cortex-debug.examineMemoryLegacy', this.examineMemoryLegacy.bind(this)),
+            vscode.commands.registerCommand('general-debug.examineMemory', this.examineMemory.bind(this)),
+            vscode.commands.registerCommand('general-debug.examineMemoryLegacy', this.examineMemoryLegacy.bind(this)),
 
-            vscode.commands.registerCommand('cortex-debug.resetDevice', this.resetDevice.bind(this)),
-            vscode.commands.registerCommand('cortex-debug.pvtEnableDebug', this.pvtCycleDebugMode.bind(this)),
+            vscode.commands.registerCommand('general-debug.resetDevice', this.resetDevice.bind(this)),
+            vscode.commands.registerCommand('general-debug.pvtEnableDebug', this.pvtCycleDebugMode.bind(this)),
 
-            vscode.commands.registerCommand('cortex-debug.liveWatch.addExpr', this.addLiveWatchExpr.bind(this)),
-            vscode.commands.registerCommand('cortex-debug.liveWatch.removeExpr', this.removeLiveWatchExpr.bind(this)),
-            vscode.commands.registerCommand('cortex-debug.liveWatch.editExpr', this.editLiveWatchExpr.bind(this)),
-            vscode.commands.registerCommand('cortex-debug.liveWatch.addToLiveWatch', this.addToLiveWatch.bind(this)),
-            vscode.commands.registerCommand('cortex-debug.liveWatch.moveUp', this.moveUpLiveWatchExpr.bind(this)),
-            vscode.commands.registerCommand('cortex-debug.liveWatch.moveDown', this.moveDownLiveWatchExpr.bind(this)),
+            vscode.commands.registerCommand('general-debug.liveWatch.addExpr', this.addLiveWatchExpr.bind(this)),
+            vscode.commands.registerCommand('general-debug.liveWatch.removeExpr', this.removeLiveWatchExpr.bind(this)),
+            vscode.commands.registerCommand('general-debug.liveWatch.editExpr', this.editLiveWatchExpr.bind(this)),
+            vscode.commands.registerCommand('general-debug.liveWatch.addToLiveWatch', this.addToLiveWatch.bind(this)),
+            vscode.commands.registerCommand('general-debug.liveWatch.moveUp', this.moveUpLiveWatchExpr.bind(this)),
+            vscode.commands.registerCommand('general-debug.liveWatch.moveDown', this.moveDownLiveWatchExpr.bind(this)),
 
             vscode.workspace.onDidChangeConfiguration(this.settingsChanged.bind(this)),
             vscode.debug.onDidReceiveDebugSessionCustomEvent(this.receivedCustomEvent.bind(this)),
@@ -96,7 +96,7 @@ export class CortexDebugExtension {
                 if (e && e.textEditor.document.fileName.endsWith('.cdmem')) { this.memoryProvider.handleSelection(e); }
             }),
 
-            vscode.debug.registerDebugConfigurationProvider('cortex-debug', new CortexDebugConfigurationProvider(context)),
+            vscode.debug.registerDebugConfigurationProvider('general-debug', new GeneralDebugConfigurationProvider(context)),
 
             this.liveWatchTreeView,
             this.liveWatchTreeView.onDidExpandElement((e) => {
@@ -118,14 +118,14 @@ export class CortexDebugExtension {
 
     public static getActiveCDSession() {
         const session = vscode.debug.activeDebugSession;
-        if (session?.type === 'cortex-debug') {
+        if (session?.type === 'general-debug') {
             return session;
         }
         return null;
     }
 
     private resetDevice() {
-        let session = CortexDebugExtension.getActiveCDSession();
+        let session = GeneralDebugExtension.getActiveCDSession();
         if (session) {
             let mySession = CDebugSession.FindSession(session);
             const parentConfig = mySession.config?.pvtParent;
@@ -163,9 +163,9 @@ export class CortexDebugExtension {
     }
 
     private settingsChanged(e: vscode.ConfigurationChangeEvent) {
-        if (e.affectsConfiguration(`cortex-debug.${CortexDebugKeys.VARIABLE_DISPLAY_MODE}`)) {
-            const config = vscode.workspace.getConfiguration('cortex-debug');
-            const isHex = config.get(CortexDebugKeys.VARIABLE_DISPLAY_MODE, true) ? false : true;
+        if (e.affectsConfiguration(`general-debug.${GeneralDebugKeys.VARIABLE_DISPLAY_MODE}`)) {
+            const config = vscode.workspace.getConfiguration('general-debug');
+            const isHex = config.get(GeneralDebugKeys.VARIABLE_DISPLAY_MODE, true) ? false : true;
             let foundStopped = false;
             for (const s of CDebugSession.CurrentSessions) {
                 try {
@@ -186,18 +186,18 @@ export class CortexDebugExtension {
             }
             if (!foundStopped) {
                 const fmt = isHex ? 'hex' : 'dec';
-                const msg = `Cortex-Debug: Variables window format "${fmt}" will take effect next time the session pauses`;
+                const msg = `General-Debug: Variables window format "${fmt}" will take effect next time the session pauses`;
                 vscode.window.showInformationMessage(msg);
             }
         }
-        if (e.affectsConfiguration(`cortex-debug.${CortexDebugKeys.SERVER_LOG_FILE_NAME}`)) {
-            const config = vscode.workspace.getConfiguration('cortex-debug');
-            const fName = config.get(CortexDebugKeys.SERVER_LOG_FILE_NAME, '');
+        if (e.affectsConfiguration(`general-debug.${GeneralDebugKeys.SERVER_LOG_FILE_NAME}`)) {
+            const config = vscode.workspace.getConfiguration('general-debug');
+            const fName = config.get(GeneralDebugKeys.SERVER_LOG_FILE_NAME, '');
             this.gdbServerConsole.createLogFile(fName);
         }
-        if (e.affectsConfiguration(`cortex-debug.${CortexDebugKeys.DEV_DEBUG_MODE}`)) {
-            const config = vscode.workspace.getConfiguration('cortex-debug');
-            const dbgMode = config.get(CortexDebugKeys.DEV_DEBUG_MODE, ADAPTER_DEBUG_MODE.NONE);
+        if (e.affectsConfiguration(`general-debug.${GeneralDebugKeys.DEV_DEBUG_MODE}`)) {
+            const config = vscode.workspace.getConfiguration('general-debug');
+            const dbgMode = config.get(GeneralDebugKeys.DEV_DEBUG_MODE, ADAPTER_DEBUG_MODE.NONE);
             for (const s of CDebugSession.CurrentSessions) {
                 try {
                     s.session.customRequest('set-debug-mode', { mode: dbgMode });
@@ -222,7 +222,7 @@ export class CortexDebugExtension {
     }
 
     private activeEditorChanged(editor: vscode.TextEditor) {
-        const session = CortexDebugExtension.getActiveCDSession();
+        const session = GeneralDebugExtension.getActiveCDSession();
         if (editor !== undefined && session) {
             const uri = editor.document.uri;
             if (uri.scheme === 'file') {
@@ -270,9 +270,9 @@ export class CortexDebugExtension {
             return address;
         }
 
-        const session = CortexDebugExtension.getActiveCDSession();
+        const session = GeneralDebugExtension.getActiveCDSession();
         if (!session) {
-            vscode.window.showErrorMessage('No cortex-debug session available');
+            vscode.window.showErrorMessage('No general-debug session available');
             return;
         }
 
@@ -359,12 +359,12 @@ export class CortexDebugExtension {
     private variablesNaturalMode(newVal: boolean, cxt?: any) {
         // 'cxt' contains the treeItem on which this menu was invoked. Maybe we can do something
         // with it later
-        const config = vscode.workspace.getConfiguration('cortex-debug');
+        const config = vscode.workspace.getConfiguration('general-debug');
 
-        vscode.commands.executeCommand('setContext', `cortex-debug:${CortexDebugKeys.VARIABLE_DISPLAY_MODE}`, newVal);
+        vscode.commands.executeCommand('setContext', `general-debug:${GeneralDebugKeys.VARIABLE_DISPLAY_MODE}`, newVal);
         try {
-            const [target, languageOverride] = this.getConfigSource(config, CortexDebugKeys.VARIABLE_DISPLAY_MODE);
-            config.update(CortexDebugKeys.VARIABLE_DISPLAY_MODE, newVal, target, languageOverride);
+            const [target, languageOverride] = this.getConfigSource(config, GeneralDebugKeys.VARIABLE_DISPLAY_MODE);
+            config.update(GeneralDebugKeys.VARIABLE_DISPLAY_MODE, newVal, target, languageOverride);
         } catch (e) {
             console.error(e);
         }
@@ -373,30 +373,30 @@ export class CortexDebugExtension {
     private toggleVariablesHexMode() {
         // 'cxt' contains the treeItem on which this menu was invoked. Maybe we can do something
         // with it later
-        const config = vscode.workspace.getConfiguration('cortex-debug');
-        const curVal = config.get(CortexDebugKeys.VARIABLE_DISPLAY_MODE, true);
+        const config = vscode.workspace.getConfiguration('general-debug');
+        const curVal = config.get(GeneralDebugKeys.VARIABLE_DISPLAY_MODE, true);
         const newVal = !curVal;
-        vscode.commands.executeCommand('setContext', `cortex-debug:${CortexDebugKeys.VARIABLE_DISPLAY_MODE}`, newVal);
+        vscode.commands.executeCommand('setContext', `general-debug:${GeneralDebugKeys.VARIABLE_DISPLAY_MODE}`, newVal);
         try {
-            const [target, languageOverride] = this.getConfigSource(config, CortexDebugKeys.VARIABLE_DISPLAY_MODE);
-            config.update(CortexDebugKeys.VARIABLE_DISPLAY_MODE, newVal, target, languageOverride);
+            const [target, languageOverride] = this.getConfigSource(config, GeneralDebugKeys.VARIABLE_DISPLAY_MODE);
+            config.update(GeneralDebugKeys.VARIABLE_DISPLAY_MODE, newVal, target, languageOverride);
         } catch (e) {
             console.error(e);
         }
     }
 
     private pvtCycleDebugMode() {
-        const config = vscode.workspace.getConfiguration('cortex-debug');
-        const curVal: ADAPTER_DEBUG_MODE = config.get(CortexDebugKeys.DEV_DEBUG_MODE, ADAPTER_DEBUG_MODE.NONE);
+        const config = vscode.workspace.getConfiguration('general-debug');
+        const curVal: ADAPTER_DEBUG_MODE = config.get(GeneralDebugKeys.DEV_DEBUG_MODE, ADAPTER_DEBUG_MODE.NONE);
         const validVals = Object.values(ADAPTER_DEBUG_MODE);
         let ix = validVals.indexOf(curVal);
         ix = ix < 0 ? ix = 0 : ((ix + 1) % validVals.length);
-        config.set(CortexDebugKeys.DEV_DEBUG_MODE, validVals[ix]);
+        config.set(GeneralDebugKeys.DEV_DEBUG_MODE, validVals[ix]);
     }
 
     // Debug Events
     private debugSessionStarted(session: vscode.DebugSession) {
-        if (session.type !== 'cortex-debug') { return; }
+        if (session.type !== 'general-debug') { return; }
 
         const newSession = CDebugSession.NewSessionStarted(session);
 
@@ -424,7 +424,7 @@ export class CortexDebugExtension {
     }
 
     private debugSessionTerminated(session: vscode.DebugSession) {
-        if (session.type !== 'cortex-debug') { return; }
+        if (session.type !== 'general-debug') { return; }
         const mySession = CDebugSession.FindSession(session);
         try {
             Reporting.endSession(session.id);
@@ -454,7 +454,7 @@ export class CortexDebugExtension {
 
     private receivedCustomEvent(e: vscode.DebugSessionCustomEvent) {
         const session = e.session;
-        if (session.type !== 'cortex-debug') { return; }
+        if (session.type !== 'general-debug') { return; }
         switch (e.event) {
             case 'custom-stop':
                 this.receivedStopEvent(e);
@@ -626,7 +626,7 @@ export class CortexDebugExtension {
                 ServerConsoleLog(`Sending custom-stop-debugging to ${s.session.name}`, process.pid);
                 s.session.customRequest('custom-stop-debugging', e.body.info).then(() => {
                 }, (reason) => {
-                    vscode.window.showErrorMessage(`Cortex-Debug: Bug? session.customRequest('set-stop-debugging-type', ... failed ${reason}\n`);
+                    vscode.window.showErrorMessage(`General-Debug: Bug? session.customRequest('set-stop-debugging-type', ... failed ${reason}\n`);
                 });
             }
             // Following does not work. Apparently, a customRequest cannot be sent probably because this session is already
@@ -678,7 +678,7 @@ export class CortexDebugExtension {
     private getCurrentArgs(session: vscode.DebugSession): ConfigurationArguments {
         if (!session) {
             session = vscode.debug.activeDebugSession;
-            if (!session || (session.type !== 'cortex-debug')) {
+            if (!session || (session.type !== 'general-debug')) {
                 return undefined;
             }
         }
@@ -689,7 +689,7 @@ export class CortexDebugExtension {
         return session.configuration as unknown as ConfigurationArguments;
     }
 
-    // Assuming 'session' valid and it a cortex-debug session
+    // Assuming 'session' valid and it a general-debug session
     private isDebugging(session: vscode.DebugSession) {
         const { noDebug } = this.getCurrentArgs(session);
         return (noDebug !== true);       // If it is exactly equal to 'true' we are doing a 'run without debugging'
@@ -732,7 +732,7 @@ export class CortexDebugExtension {
             mySession.swoSource = src;
             this.initializeSWO(e.session, e.body.args);
             src.start().then(() => {
-                CortexDebugChannel.debugMessage(`Connected after ${src.nTries} tries`);
+                GeneralDebugChannel.debugMessage(`Connected after ${src.nTries} tries`);
                 // Do nothing...
             }, (e) => {
                 vscode.window.showErrorMessage(`Could not open SWO TCP port ${e.body.port} ${e} after ${src.nTries} tries`);
@@ -774,7 +774,7 @@ export class CortexDebugExtension {
                 }
             }
         } else {
-            CortexDebugChannel.debugMessage('Error: receivedRTTConfigureEvent: unknown type: ' + e.body.type);
+            GeneralDebugChannel.debugMessage('Error: receivedRTTConfigureEvent: unknown type: ' + e.body.type);
         }
     }
 
@@ -916,11 +916,11 @@ export class CortexDebugExtension {
 
 export function activate(context: vscode.ExtensionContext) {
     try {
-        CortexDebugChannel.createDebugChanne();
-        CortexDebugChannel.debugMessage('Starting Cortex-Debug extension.');
+        GeneralDebugChannel.createDebugChanne();
+        GeneralDebugChannel.debugMessage('Starting General-Debug extension.');
     } catch (_e) { /* empty */ }
 
-    return new CortexDebugExtension(context);
+    return new GeneralDebugExtension(context);
 }
 
 export function deactivate() {}

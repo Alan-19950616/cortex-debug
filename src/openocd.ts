@@ -15,7 +15,7 @@ import { GDBDebugSession } from './gdb';
 function getLogPath() {
     try {
         const tmpDirName = os.tmpdir();
-        const fsPath = path.join(tmpDirName, 'cortex-debug-openocd.log');
+        const fsPath = path.join(tmpDirName, 'general-debug-openocd.log');
         return fsPath;
     } catch {
         return '';

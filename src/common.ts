@@ -20,7 +20,7 @@ export enum ADAPTER_DEBUG_MODE {
     VSCODE = 'vscode'
 }
 
-export enum CortexDebugKeys {
+export enum GeneralDebugKeys {
     REGISTER_DISPLAY_MODE = 'registerUseNaturalFormat',
     VARIABLE_DISPLAY_MODE = 'variableUseNaturalFormat',
     SERVER_LOG_FILE_NAME = 'dbgServerLogfile',

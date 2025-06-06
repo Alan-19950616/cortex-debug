@@ -4,7 +4,7 @@ import { GrapherDataMessage } from '../common';
 import { SWOAdvancedDecoderConfig, AdvancedDecoder } from '../advanced-decoder';
 import { EventEmitter } from 'events';
 import { Packet } from '../common';
-import { CortexDebugChannel } from '../../../dbgmsgs';
+import { GeneralDebugChannel } from '../../../dbgmsgs';
 import { HrTimer } from '../../../common';
 
 declare function __webpack_require__();
@@ -63,7 +63,7 @@ export class SWORTTAdvancedProcessor extends EventEmitter implements SWORTTDecod
                 try {
                     this.decoder.softwareEvent(packet.port, packet.data);
                 } catch (e) {
-                    CortexDebugChannel.debugMessage('Error: in softwareEvent() for decoder ' + e.toString());
+                    GeneralDebugChannel.debugMessage('Error: in softwareEvent() for decoder ' + e.toString());
                 }
             }
         }
@@ -75,7 +75,7 @@ export class SWORTTAdvancedProcessor extends EventEmitter implements SWORTTDecod
         try {
             this.decoder?.synchronized();
         } catch (e) {
-            CortexDebugChannel.debugMessage('Error: in synchronized() for decoder ' + e.toString());
+            GeneralDebugChannel.debugMessage('Error: in synchronized() for decoder ' + e.toString());
         }
     }
 
@@ -83,7 +83,7 @@ export class SWORTTAdvancedProcessor extends EventEmitter implements SWORTTDecod
         try {
             this.decoder?.lostSynchronization();
         } catch (e) {
-            CortexDebugChannel.debugMessage('Error: in lostSynchronization() for decoder ' + e.toString());
+            GeneralDebugChannel.debugMessage('Error: in lostSynchronization() for decoder ' + e.toString());
         }
     }
 
@@ -94,7 +94,7 @@ export class SWORTTAdvancedProcessor extends EventEmitter implements SWORTTDecod
             }
             this.output.append(output);
         } else {
-            CortexDebugChannel.debugMessage(`Error: displayOutput(${output}) called before decoder was fully initialized`);
+            GeneralDebugChannel.debugMessage(`Error: displayOutput(${output}) called before decoder was fully initialized`);
         }
     }
 
@@ -118,7 +118,7 @@ export class SWORTTAdvancedProcessor extends EventEmitter implements SWORTTDecod
             try {
                 this.decoder.dispose();
             } catch (e) {
-                CortexDebugChannel.debugMessage('Error: in dispose() for decoder ' + e.toString());
+                GeneralDebugChannel.debugMessage('Error: in dispose() for decoder ' + e.toString());
             }
         }
         this.decoder = undefined;

@@ -38,12 +38,12 @@ jobs:
     - name: Install VSCE for packaging
       run: npm install vsce
     - name: Package Binary
-      run: ./node_modules/vsce/vsce package -o cortex-debug.vsix
+      run: ./node_modules/vsce/vsce package -o general-debug.vsix
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: cortex-debug.vsix
-        path: ./cortex-debug.vsix
+        name: general-debug.vsix
+        path: ./general-debug.vsix
 
   lint:
     name: Lint

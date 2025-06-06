@@ -1,6 +1,6 @@
 {
-    "name": "Cortex-Debug Disassembly",
-    "scopeName": "source.cortex-debug-disassembly",
+    "name": "General-Debug Disassembly",
+    "scopeName": "source.general-debug-disassembly",
     "uuid": "7500223D-3F3F-47C2-8020-354566B001BD",
     "patterns": [
         {

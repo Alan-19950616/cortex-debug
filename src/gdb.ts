@@ -355,7 +355,7 @@ export class GDBDebugSession extends LoggingDebugSession {
 
         this.args = this.normalizeArguments(args);
         this.handleMsg('stdout',
-            `Cortex-Debug: VSCode debugger extension version ${args.pvtVersion} git(${__COMMIT_HASH__}). `
+            `General-Debug: VSCode debugger extension version ${args.pvtVersion} git(${__COMMIT_HASH__}). `
             + 'Usage info: https://github.com/Marus/cortex-debug#usage');
 
         if (this.args.showDevDebugOutput) {
@@ -903,7 +903,7 @@ export class GDBDebugSession extends LoggingDebugSession {
             gdbExePath = path.normalize(path.join(this.args.toolchainPath, gdbExePath));
         }
         const gdbMissingMsg = `GDB executable "${gdbExePath}" was not found.\n`
-            + 'Please configure "cortex-debug.armToolchainPath" or "cortex-debug.gdbPath" correctly.';
+            + 'Please configure "general-debug.armToolchainPath" or "general-debug.gdbPath" correctly.';
 
         if (this.args.gdbPath) {
             gdbExePath = this.args.gdbPath;
@@ -2460,7 +2460,7 @@ export class GDBDebugSession extends LoggingDebugSession {
                 this.handleMsg('log', 'Returning dummy thread-id to workaround VSCode issue with pause button not working\n');
             }
             const useThread = this.currentThreadId || (this.activeThreadIds.size ? this.activeThreadIds.values[0] : 1);
-            response.body.threads = [new Thread(useThread, 'cortex-debug-dummy-thread')];
+            response.body.threads = [new Thread(useThread, 'general-debug-dummy-thread')];
             this.sendResponse(response);
             return Promise.resolve();
         }
@@ -2570,7 +2570,7 @@ export class GDBDebugSession extends LoggingDebugSession {
         args.startFrame = args.startFrame ?? 0;
         args.levels = args.levels ?? Infinity;
         const createDummy = () => {
-            response.body.stackFrames = [new StackFrame(encodeReference(args.threadId, 0), 'cortex-debug-dummy', null, 0, 0)];
+            response.body.stackFrames = [new StackFrame(encodeReference(args.threadId, 0), 'general-debug-dummy', null, 0, 0)];
             response.body.totalFrames = 1;
         };
         const isBusy = () => {

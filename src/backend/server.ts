@@ -22,7 +22,7 @@ export function ServerConsoleLog(str: string, usePid?: number) {
         if (!str.endsWith('\n')) {
             str += '\n';
         }
-        fs.appendFileSync(path.join(tmpDirName, 'cortex-debug-server-exiting.log'), str);
+        fs.appendFileSync(path.join(tmpDirName, 'general-debug-server-exiting.log'), str);
     } catch (e) {
         console.log(e ? e.toString() : 'unknown exception?');
     }

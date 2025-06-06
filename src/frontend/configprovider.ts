@@ -4,10 +4,10 @@ import * as os from 'os';
 import { STLinkServerController } from './../stlink';
 import { GDBServerConsole } from './server_console';
 import {
-    ADAPTER_DEBUG_MODE, ChainedConfigurations, ChainedEvents, CortexDebugKeys,
+    ADAPTER_DEBUG_MODE, ChainedConfigurations, ChainedEvents, GeneralDebugKeys,
     sanitizeDevDebug, validateELFHeader, SymbolFile, defSymbolFile
 } from '../common';
-import { CDebugChainedSessionItem, CDebugSession } from './cortex_debug_session';
+import { CDebugChainedSessionItem, CDebugSession } from './general_debug_session';
 import * as path from 'path';
 
 // Please confirm these names with OpenOCD source code. Their docs are incorrect as to case
@@ -29,7 +29,7 @@ const OPENOCD_VALID_RTOS: string[] = [
 ];
 const JLINK_VALID_RTOS: string[] = ['Azure', 'ChibiOS', 'embOS', 'FreeRTOS', 'NuttX', 'Zephyr'];
 
-export class CortexDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
+export class GeneralDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
     constructor(private context: vscode.ExtensionContext) {}
 
     public provideDebugConfigurations(): vscode.ProviderResult<vscode.DebugConfiguration[]> {
@@ -38,7 +38,7 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
             cwd: '${workspaceFolder}',
             executable: './bin/executable.elf',
             request: 'launch',
-            type: 'cortex-debug',
+            type: 'general-debug',
             runToEntryPoint: 'main',
             servertype: 'jlink'
         }];
@@ -134,7 +134,7 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
         if (config.runToEntryPoint) { config.runToEntryPoint = config.runToEntryPoint.trim(); } else if (config.runToMain) {
             config.runToEntryPoint = 'main';
             vscode.window.showWarningMessage(
-                'launch.json: "runToMain" has been deprecated and will not work in future versions of Cortex-Debug. Please use "runToEntryPoint" instead');
+                'launch.json: "runToMain" has been deprecated and will not work in future versions of General-Debug. Please use "runToEntryPoint" instead');
         }
 
         if ((type !== 'openocd') || !config.ctiOpenOCDConfig?.enabled) {
@@ -186,7 +186,7 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
             }
         }
 
-        const configuration = vscode.workspace.getConfiguration('cortex-debug');
+        const configuration = vscode.workspace.getConfiguration('general-debug');
         if (config.pvtAdapterDebugOptions === undefined) {
             config.pvtAdapterDebugOptions = configuration.get('pvtAdapterDebugOptions', {});
         }
@@ -194,7 +194,7 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
             config.pvtAdapterDebugOptions = {};
         }
         if (config.showDevDebugOutput === undefined) {
-            config.showDevDebugOutput = configuration.get(CortexDebugKeys.DEV_DEBUG_MODE, ADAPTER_DEBUG_MODE.NONE);
+            config.showDevDebugOutput = configuration.get(GeneralDebugKeys.DEV_DEBUG_MODE, ADAPTER_DEBUG_MODE.NONE);
         }
         if (!sanitizeDevDebug(config as unknown)) {
             const modes = Object.values(ADAPTER_DEBUG_MODE).join(',');
@@ -225,8 +225,8 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
             config.extensionPath = config.extensionPath.replace(/\\/g, '/'); // GDB doesn't interpret the path correctly with backslashes.
         }
 
-        config.registerUseNaturalFormat = configuration.get(CortexDebugKeys.REGISTER_DISPLAY_MODE, true);
-        config.variableUseNaturalFormat = configuration.get(CortexDebugKeys.VARIABLE_DISPLAY_MODE, true);
+        config.registerUseNaturalFormat = configuration.get(GeneralDebugKeys.REGISTER_DISPLAY_MODE, true);
+        config.variableUseNaturalFormat = configuration.get(GeneralDebugKeys.VARIABLE_DISPLAY_MODE, true);
 
         if (validationResponse) {
             vscode.window.showErrorMessage(validationResponse);
@@ -255,7 +255,7 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
         }
         this.validateLoadAndSymbolFiles(config, cwd);
 
-        const extension = vscode.extensions.getExtension('marus25.cortex-debug');
+        const extension = vscode.extensions.getExtension('marus25.general-debug');
         config.pvtVersion = extension?.packageJSON?.version || '<unknown version>';
 
         if (config.liveWatch?.enabled) {
@@ -331,12 +331,12 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
                 } else {
                     symF.file = exe;
                 }
-                CortexDebugConfigurationProvider.adjustStrIntProp(symF, 'offset', `file ${exe}`);
-                CortexDebugConfigurationProvider.adjustStrIntProp(symF, 'textaddress', `file ${exe}`);
+                GeneralDebugConfigurationProvider.adjustStrIntProp(symF, 'offset', `file ${exe}`);
+                GeneralDebugConfigurationProvider.adjustStrIntProp(symF, 'textaddress', `file ${exe}`);
                 symF.sectionMap = {};
                 symF.sections = symF.sections || [];
                 for (const section of symF.sections) {
-                    CortexDebugConfigurationProvider.adjustStrIntProp(section, 'address', `section ${section.name} of file ${exe}`);
+                    GeneralDebugConfigurationProvider.adjustStrIntProp(section, 'address', `section ${section.name} of file ${exe}`);
                     symF.sectionMap[section.name] = section;
                 }
                 validateELFHeader(exe, (str: string, fatal: boolean) => {
@@ -480,7 +480,7 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
     private setOsSpecficConfigSetting(config: vscode.DebugConfiguration, dstName: string, propName: string = '') {
         if (!config[dstName]) {
             propName = propName || dstName;
-            const settings = vscode.workspace.getConfiguration('cortex-debug');
+            const settings = vscode.workspace.getConfiguration('general-debug');
             const obj = settings[propName];
             if ((obj !== undefined) && (obj !== null)) {
                 if (typeof obj === 'object') {

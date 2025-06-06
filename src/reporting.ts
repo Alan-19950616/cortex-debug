@@ -7,7 +7,7 @@ import { ConfigurationArguments } from './common';
 
 import { v4 as uuidv4 } from 'uuid';
 
-const extension = vscode.extensions.getExtension('marus25.cortex-debug');
+const extension = vscode.extensions.getExtension('marus25.general-debug');
 const extensionId = extension.id;
 const extensionVersion = extension.packageJSON.version;
 const trackingId = 'UA-113901869-1';
@@ -32,7 +32,7 @@ interface UserSettings {
 
 function getUUID(): string {
     if (!uuid) {
-        const settingspath = path.join(os.homedir(), '.cortex-debug');
+        const settingspath = path.join(os.homedir(), '.general-debug');
         if (fs.existsSync(settingspath)) {
             const data = fs.readFileSync(settingspath, 'utf8');
             const settings: UserSettings = JSON.parse(data);
@@ -49,9 +49,9 @@ function getUUID(): string {
 
 function telemetryEnabled(): boolean {
     const telemetry = vscode.workspace.getConfiguration('telemetry');
-    const cortexDebug = vscode.workspace.getConfiguration('cortex-debug');
+    const generaldebug = vscode.workspace.getConfiguration('general-debug');
 
-    return telemetry.get('enableTelemetry', false) && cortexDebug.get('enableTelemetry', false);
+    return telemetry.get('enableTelemetry', false) && generaldebug.get('enableTelemetry', false);
 }
 
 function activate(context: vscode.ExtensionContext) {
@@ -82,7 +82,7 @@ function beginSession(id: string, opts: ConfigurationArguments) {
     if (opts.device) { analytics.set(DEVICE_ID_DIMENSION, opts.device); }
     analytics.set(GDB_SERVER_TYPE_DIMENSION, opts.servertype);
 
-    analytics.screenview('Debug Session', 'Cortex-Debug', extensionVersion, extensionId);
+    analytics.screenview('Debug Session', 'General-Debug', extensionVersion, extensionId);
     analytics.event('Session', 'Started', '', 0, { sessionControl: 'start' });
 
     if (opts.swoConfig.enabled) {

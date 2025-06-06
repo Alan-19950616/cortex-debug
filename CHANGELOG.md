@@ -13,7 +13,7 @@
 
 # V1.13.0-pre4
 * Feature: Support for setting values on expression from the Watch panel. The new value has to be something that GDB understands, so setting values on arrays, structures won't work but it should work on any scalar
-* Feature: Request [#1071](https://github.com/Marus/cortex-debug/issues/1071) implemented for `stlink`. If STM32CubeCLT tools are installed, it is always preferred over STM32CubeIDE. It is still guess work though and the best way of getting exactly the tools you want by using either the cortex-debug settings (preferred) or launch.json. I recommend always installing STM32CubeCLT and keep it up to date. **This change can be a breaking change for some users who installed both tools, sorry**.
+* Feature: Request [#1071](https://github.com/Marus/cortex-debug/issues/1071) implemented for `stlink`. If STM32CubeCLT tools are installed, it is always preferred over STM32CubeIDE. It is still guess work though and the best way of getting exactly the tools you want by using either the general-debug settings (preferred) or launch.json. I recommend always installing STM32CubeCLT and keep it up to date. **This change can be a breaking change for some users who installed both tools, sorry**.
 * MAJOR Change. The `Restart` button functionality has been completely changed. This was not a stable function and VSCode kept changing its definition over the years multiple times. However they provide a default functionality, so the `Restart` button still works but very differently from our implementation. As of today, VSCode seems to do the following (and this extension is not involved)
   * It Stops the current session. This means the current GDB and any GDB-server (openocd, stlink, etc. are also terminated)
   * If then Starts a new session using the same configuration.
@@ -54,7 +54,7 @@ This is a major release. It has been in pre-release for quite a while and some o
 * Issue #861: Potential fix
 * Issue #867: STLink make it so that user has to enable `-shared` if needed. Before it was automatically added to the command-line and there was no (good) way to remove it
 * Issue #882: Potential fix. In some cases the extension would crash while single stepping
-* Issue #896: Bug in handling of OS specific overrides (like `cortex-debug.gdbPath.linux`)
+* Issue #896: Bug in handling of OS specific overrides (like `general-debug.gdbPath.linux`)
 
 # V1.11.2
 * Minor bug fix to guard against invalid expressions (watch and live watch)
@@ -119,14 +119,14 @@ This is a major release. It has been in pre-release for quite a while and some o
 * JLink now properly supports a `detach` operation so that programs can continue running after the debug session. Please upgrade your JLink SW to V7.82b or later.
 
 # V1.6.7
-* The old memory viewer is temporarily restored as a new command `Cortex-Debug: View Memory (Legacy)`. We will **not** be maintaining this legacy viewer but there may be capabilities there that are not yet in the new memory viewer. Like selection and copy to clipboard
+* The old memory viewer is temporarily restored as a new command `General-Debug: View Memory (Legacy)`. We will **not** be maintaining this legacy viewer but there may be capabilities there that are not yet in the new memory viewer. Like selection and copy to clipboard
 ## Issues
-* [#769](https://github.com/Marus/cortex-debug/issues/769): Nested register cluster in SVD file is not displayed. The SVD spec changed in v1.3 nested clusters are now allowed. This is now supported by Cortex-Debug
+* [#769](https://github.com/Marus/cortex-debug/issues/769): Nested register cluster in SVD file is not displayed. The SVD spec changed in v1.3 nested clusters are now allowed. This is now supported by General-Debug
 
 # V1.6.6
 * `void *` variables now return `memoryReference` values.
 * ST-LINK we now reserve four TCP ports when launching their gdb-server. We only use the first one but it done in case a second ST-LINK server is launched.
-* `Cortex-Debug: View Memory` command now uses a separate memory viewer extension if it is installed. https://marketplace.visualstudio.com/items?itemName=mcu-debug.memory-view. In the future, we may auto install the extension when this extension is installed. We would like to hear if you would like that. The download is about 1MB
+* `General-Debug: View Memory` command now uses a separate memory viewer extension if it is installed. https://marketplace.visualstudio.com/items?itemName=mcu-debug.memory-view. In the future, we may auto install the extension when this extension is installed. We would like to hear if you would like that. The download is about 1MB
 
 # V1.6.4
 * Issue #741: Could not determine gdb version from Fedora install
@@ -145,7 +145,7 @@ This is a major release. It has been in pre-release for quite a while and some o
 * Please see all the notes from the pre-releases (1.5.x). Following are the highlights
 * **RTOS Views**: Support for uC/OS-II & embOS, thanks to  @PhilippHaefele & @mayjs for adding them. Just a reminder, anyone can contribute their favorite RTOS if you have a bit of knowledge of TypeScript/JavaScript and more importantly, knowledge of RTOS internals
 * You can also use **Microsoft Embedded Tools** and their RTOS views as we are now compatible with each other
-* Microsoft Embedded Tools also added compatibility for Cortex-Debug for their version of Peripheral Views/Registers. They also helped with integrating Cortex-Debug with MS built-in Hex-Editor. To use MS Peripheral View, use `svdPath` in launch.json. `svdFile` uses the SVD feature from Cortex-Debug. You can use both at the same time if you wish but you should typically use only one.
+* Microsoft Embedded Tools also added compatibility for General-Debug for their version of Peripheral Views/Registers. They also helped with integrating General-Debug with MS built-in Hex-Editor. To use MS Peripheral View, use `svdPath` in launch.json. `svdFile` uses the SVD feature from General-Debug. You can use both at the same time if you wish but you should typically use only one.
 * Fixed a long standing issue with OpenOCD RTT where there was no good way to know when to start the RTT. We can now poll until RTT is detected and enabled. See `rttConfig.rtt_start_retry` in your launch.json to control who the polling works.
 * Support for loading alternate symbol files instead of the `"executable"` using a new launch.json property `"symbolFiles"`. See the Wiki [documentation here](https://github.com/Marus/cortex-debug/wiki/Overview#debug-files). This is in addition to the already existing `"loadFiles"` which is used to customizing the programming of the device
 * You can now use `breakAfterReset` and `runToEntryPoint` for an `attach` type launch configuration as well but they will only be used on a reset/restart.
@@ -161,8 +161,8 @@ This is a major release. It has been in pre-release for quite a while and some o
 # V1.5.3
 
 ## New features and fixes
-* Serial port changes: We have no changed how serial ports are supported. We now rely on the Serial Monitor extension from Microsoft to provide a copy of the `serialport` NPM module or you can compile it for cortex-debug yourself. The latter is always preferred. We do this because `serialport` is a binary module and requires it to be compiled using the exact version of Electron and Node that VSCode is built upon. This has become very difficult to support for every OS/Processor combination and it was also increasing the size of the corte-debug package -- exceeding the limits set by Microsoft
-* Cortex-Debug RTOS views will now work with MS `cppdbg` debugger and vice versa. You can use both or either or none. Until the next release, you will need pre-release versions of the Microsoft Embedded tools and this extension.
+* Serial port changes: We have no changed how serial ports are supported. We now rely on the Serial Monitor extension from Microsoft to provide a copy of the `serialport` NPM module or you can compile it for general-debug yourself. The latter is always preferred. We do this because `serialport` is a binary module and requires it to be compiled using the exact version of Electron and Node that VSCode is built upon. This has become very difficult to support for every OS/Processor combination and it was also increasing the size of the corte-debug package -- exceeding the limits set by Microsoft
+* General-Debug RTOS views will now work with MS `cppdbg` debugger and vice versa. You can use both or either or none. Until the next release, you will need pre-release versions of the Microsoft Embedded tools and this extension.
 * Thanks to a PR by MS embedded folks, you can now have memory views for pointers from the Variable and Watch windows.
 
 # V1.5.2
@@ -195,7 +195,7 @@ This is a major release. It has been in pre-release for quite a while and some o
 * [#647](https://github.com/Marus/cortex-debug/issues/647): Fixed "Serial SWO source with OpenOCD". It was not using the right swoConfig property to open the serial-port. The same problem existed with `external` type servers.
 * [#653](https://github.com/Marus/cortex-debug/issues/653): Maybe Fixed "SVD Display Stops". At some point, VSCode TreeView changed and fails on NULL tooltips. Was not a problem before
 General
-* There was a mis-understanding in how we interpreted the VSCode API (we took it literally). This caused some issues with synchronization with Cortex-Debug and VSCode. This caused hard to reproduce issues and perhaps it is addressed now. There is an issue here with JLink as well with creating and deleting threads while program is paused -- this should not happen, but it confused gdb thoroughly. Happens at startup and maybe it masked now.
+* There was a mis-understanding in how we interpreted the VSCode API (we took it literally). This caused some issues with synchronization with General-Debug and VSCode. This caused hard to reproduce issues and perhaps it is addressed now. There is an issue here with JLink as well with creating and deleting threads while program is paused -- this should not happen, but it confused gdb thoroughly. Happens at startup and maybe it masked now.
 * Improves simultaneous 3+ core debug. There was an issue where if multiple debug sessions were going at the (near) same time, when we thought a TCP port was free, it truly wasn't because the gdb-server involved was too slow to claim the port. This is more evident in chained configurations, where things happen rapidly but it was more of an issue with JLink because of how that server works.
 
 # V1.4.4
@@ -226,7 +226,7 @@ General
 
 ## New Features
 * Hover is now much more powerful. You can expand arrays, objects, etc.
-* RTOS View is now available. It is experimental and there is only support for FreeRTOS. **With your help, we can add support for more RTOSes**. You can enable this feature using the extension setting `"cortex-debug.showRTOS": true` via the interactive Setting dialog or adding it to User/Workspace/Folder settings.json. You can also use Command Palette  `Cortex-Debug: Toggle RTOS Panel` command. See [#605](https://github.com/Marus/cortex-debug/issues/605) and here is a screnshot ![screenshot](https://user-images.githubusercontent.com/41269583/159186076-e13db666-c7f7-405f-a75d-c9dd523577d4.png)<br>
+* RTOS View is now available. It is experimental and there is only support for FreeRTOS. **With your help, we can add support for more RTOSes**. You can enable this feature using the extension setting `"general-debug.showRTOS": true` via the interactive Setting dialog or adding it to User/Workspace/Folder settings.json. You can also use Command Palette  `General-Debug: Toggle RTOS Panel` command. See [#605](https://github.com/Marus/cortex-debug/issues/605) and here is a screnshot ![screenshot](https://user-images.githubusercontent.com/41269583/159186076-e13db666-c7f7-405f-a75d-c9dd523577d4.png)<br>
   Some notes
   * It can take a bit of time to update the RTOS info as it requires many tiny queries from GDB. This only occurs if the RTOS panel is visible. You can hide (expose/focus some other panel like `DEBUG CONSOLE` or `TERMINAL`). This will prevent any GDB traffic/updates and won't interfere with fast single stepping or waste your CPU resources. When when exposed it will immediately update itself and continue to do so as long as it is visible
   * If you are not using an RTOS, there is near zero overhead even if the RTOS panel is visible. The lack of an RTOS is quickly detected using one tiny GDB query and all activity ceases thereafter
@@ -359,7 +359,7 @@ This is a rather large release. Contains many enhancements, new features and bug
 * Bugfix: data breakpoints could not be deleted. Fixed by @PhilippHaefele
 
 # V1.1.5
-* Feature: There now a command (default key-binding Ctrl+Shift+X) to toggle Hex display in the Variables window. Does not affect the Registers window (which may be going away) as it has its own command and button. You can find this command in the "Command Palette" as "Cortex-Debug: Toggle hex display in Variables window"
+* Feature: There now a command (default key-binding Ctrl+Shift+X) to toggle Hex display in the Variables window. Does not affect the Registers window (which may be going away) as it has its own command and button. You can find this command in the "Command Palette" as "General-Debug: Toggle hex display in Variables window"
 * Fixed issue with with SWO (or RTT) not working the first time. It was a race condition where we were trying to connect too fast. Now we re-try. The max timeout is 5 mins.
 * Fixed SWO and RTT are now session aware. As in, you can have multiple RTT/SWO windows from different debug sessions.
 
@@ -405,11 +405,11 @@ This is a rather large release. Contains many enhancements, new features and bug
 # V0.4.8
 * Store register/peripheral settings in the appropriate folder instead of the first folder
 * Kill gdb-server if the user kills/exits gdb without using the proper disconnect/Stop buttons/process/commands
-* VSCode was terminating Cortex-Debug before it was done. st-util exit behavior was also not clean as it did not exit on a disconnect.
+* VSCode was terminating General-Debug before it was done. st-util exit behavior was also not clean as it did not exit on a disconnect.
 * Preliminary support for data watchpoints
 * SVD now can allow no merge of consecutive addresses with a -1 specified for `svdAddrGapThreshold`. This will make peripheral updates very slow but certain devices may need this option.
-* You can now save the output of a gdb-server into a text file by specifying `cortex-debug.dbgServerLogfile` in User/Workspace/Folder settings. This will save output from the servers from all sessions (not just the recent ones). This is primarily for debugging and for users when submitting issues.
-* Path names for gdb-servers can be OS specific. For instance `cortex-debug.openocdPath` can be suffixed with one of `.linux`, `.osx` or `.windows`. For instance `cortex-debug.openocdPath.windows` is used only on Windows and if that is missing, it will default looking for cortex-debug.openocdPath`.
+* You can now save the output of a gdb-server into a text file by specifying `general-debug.dbgServerLogfile` in User/Workspace/Folder settings. This will save output from the servers from all sessions (not just the recent ones). This is primarily for debugging and for users when submitting issues.
+* Path names for gdb-servers can be OS specific. For instance `general-debug.openocdPath` can be suffixed with one of `.linux`, `.osx` or `.windows`. For instance `general-debug.openocdPath.windows` is used only on Windows and if that is missing, it will default looking for general-debug.openocdPath`.
 * SWO output can now be logged (saved) to a file just like RTT output
 * Issues #524 and #525
 * Improved handling of J-Link RTOS option (file extension), added NuttX
@@ -430,7 +430,7 @@ This is a rather large release. Contains many enhancements, new features and bug
 * You can now have RTT console output lines contain a timestamp. Use the `timestamp` option for the RTT decoder. Default is false (no timestamp)
 * Issues #482 addressed for JLink. It always cleanly exits on it own. OpenOCD is still an issue where it has to be killed which once in a blue moon does not seem to work.
 * Integrated PR #480 -- creates .vscode director if it doesn't exist for saving register/peripheral states.
-* PRs #489, #490, #488, #478 submitted by @trond-snekvik merged. They fix issues and enhances your experience with Cortex-Debug in various ways. Thank you @trond-snekvik
+* PRs #489, #490, #488, #478 submitted by @trond-snekvik merged. They fix issues and enhances your experience with General-Debug in various ways. Thank you @trond-snekvik
 
 # V0.4.4
 
@@ -448,9 +448,9 @@ New Features
        "stepi"    // Because of the command above, this is a no-op. No code is actually executed
      ]
 ```
-* **`Run Without Debugging (^F5)`**: Experimental. This will now work but VSCode does not clearly define what this button should do. In an embedded cases, that is even murkier because without GDB and a gdb-server, there is no way to start the program. Between VSCode and Cortex-Debug, the end result is as follows
-    * VSCode does not transmit any breakpoints to Cortex-Debug and hence no breakpoints
-    * VSCode does show a pause button in active mode but pressing on it does nothing because that action is not sent to Cortex-Debug
+* **`Run Without Debugging (^F5)`**: Experimental. This will now work but VSCode does not clearly define what this button should do. In an embedded cases, that is even murkier because without GDB and a gdb-server, there is no way to start the program. Between VSCode and General-Debug, the end result is as follows
+    * VSCode does not transmit any breakpoints to General-Debug and hence no breakpoints
+    * VSCode does show a pause button in active mode but pressing on it does nothing because that action is not sent to General-Debug
     * `runToEntryPoint` and `breakAfterReset` options are disregarded
     * If the program halts because of an exception or any other reason, it is handled normally and now you will enter the normal debugger
 
@@ -501,9 +501,9 @@ New Features:
        * Setup of RTT is automatic by default. For this to work, your executable needs to have symbols so we can locate the address of the global variable `_SEGGER_RTT`
        * The start of the RTT control block contains a string that OpenOCD/JLinkGDBServer look for. If the address auto-detected, we clear out the string. This will help with cases where you might have stale information from a previous run.
        * For OpenOCD, you can customize the `polling_interval`, and the search string. The default `polling_interval` is 100ms as of today. 10ms seems more acceptable as a tradeoff between creating bus traffic and not losing/blocking data. If nothing changes in the MCU, then OpenOCD does not do much even if the interval is small.
-       * It is perfectly fine to have Cortex-Debug enable RTT but not use any display features. This way you can use external tools (like JLink tools or custom ones)
+       * It is perfectly fine to have General-Debug enable RTT but not use any display features. This way you can use external tools (like JLink tools or custom ones)
        * You can plot RTT data just like you could with SWO. The setup in launch.json is identical. [See this comment](https://github.com/Marus/cortex-debug/issues/456#issuecomment-896021784).
-       * **Channel sharing:** You can use the same RTT channels in multiple ways. Cortex-Debug reads the channel data from OpenOCD/JLink once and distributes to all subscribers (terminals & graphs & logfiles). For instance, you can plot a channel and also look at its binary data in a terminal. Just use two decoders with the same channel (actually called port) number.
+       * **Channel sharing:** You can use the same RTT channels in multiple ways. General-Debug reads the channel data from OpenOCD/JLink once and distributes to all subscribers (terminals & graphs & logfiles). For instance, you can plot a channel and also look at its binary data in a terminal. Just use two decoders with the same channel (actually called port) number.
        * Note: JLink RTT has a limitation that it can ONLY work with one channel (channel 0). There is another artifact with RTT channels where you may see output from a previous run at the very beginning.
        * Note: This implementation does not support Virtual Terminals that you see in the JLink RTTViewer. All output goes to the same terminal.
    * SWO console and binary decoded text data now appears in a "TERMINAL" tab instead in the "OUTPUT" tab
@@ -550,7 +550,7 @@ New Features:
 
 Bug Fixes:
    * Fixed issues with P&E Micro GDB support when using SWD connection to the target - thanks [adamkulpa](https://github.com/adamkulpa) for the PR.
-   * Fixed issues with being unable to set breakpoints in rust, assembly, and cortex-debug disassembly views on Visual Studio Code version 1.53
+   * Fixed issues with being unable to set breakpoints in rust, assembly, and general-debug disassembly views on Visual Studio Code version 1.53
 
 # V0.3.11
 
@@ -619,14 +619,14 @@ This is a pretty big release. The biggest change is to address C++ (and maybe Ru
    * Issue #179: Depending on how the compiler was used, only static variables declared in files in the current directory were being displayed. It was an issue with how `objdump` and `gdb` behaved differently. Not a perfect fix. Use Watch Window when in doubt and report any further issues and discrepancies.
    * Issues with `serialport` module: Updated to work with the latest version of VSCode/Electron. This will be an ongoing problem but hopefully, we can keep up with new releases of VSCode better in the future. When VSCode moves to a new version of Electron this extension has to be updated. For those adventurous enough, there is a script you can use to generate a compatible version yourself.
 2. New Features
-   * Preliminary support for C++ de-mangled names. In `launch.json`, there is now a configuration option `"demangle"` to enable de-mangling of symbols both by GDB and Cortex-Debug. We may remove this property in the future and demangle all the time. All users are encouraged to enable this to see if it affects debugging in a negative way. With C++, there can be a lot of issues related to overloading and templates. Please report issues.
+   * Preliminary support for C++ de-mangled names. In `launch.json`, there is now a configuration option `"demangle"` to enable de-mangling of symbols both by GDB and General-Debug. We may remove this property in the future and demangle all the time. All users are encouraged to enable this to see if it affects debugging in a negative way. With C++, there can be a lot of issues related to overloading and templates. Please report issues.
    * There is a new `launch.json` configuration option `"serverArgs"` to add additional command-line arguments when launching any supported gdb-server (like J-Link, ST-LINK, etc.)
    * Could be classified as a bug-fix. Before, setting static variable values in the Variables Window did not work. Now, it should work as expected.
    * There were some performance enhancements done for loading the Variables window when Global or Static scopes were expanded. Noticeable when single-stepping in large executables.
    * New setting `flattenAnonymous` which will flatten anonymous structs/unions. Default=false
    * New setting `registerUseNaturalFormat` which will display registers either in Natural format or Hex: Default=true
    * The command `View Disassembly (Function)` now supports a regular expression as input. It will try an exact match for a function name first. But, it that fails treats the input string as a regular expression, and if the input string ends with `/i` it is treated as case-insensitive. As always, if there are multiple matches, you have to pick one.
-   * You can now specify the `numberOfProcessors` and the `targetProcessor` to debug in `launch.json` when there are multiple cores/processors in the DAP chain. Cortex-Debug will allocate the required number of TCP ports and use the right one(s) for the processor. This has been tested with `pyOCD` and `OpenOCD`
+   * You can now specify the `numberOfProcessors` and the `targetProcessor` to debug in `launch.json` when there are multiple cores/processors in the DAP chain. General-Debug will allocate the required number of TCP ports and use the right one(s) for the processor. This has been tested with `pyOCD` and `OpenOCD`
 
 # V0.3.4
 
@@ -638,7 +638,7 @@ This is a pretty big release. The biggest change is to address C++ (and maybe Ru
    * Added `postStartSessionCommands` and `postRestartSessionCommands` configuration options to `launch.json`. These gdb commands are executed after a debug session has (re)started. These options apply to both `launch` and `attach` sessions. However, `postStartSessionCommands` is ignored if `runToMain` is enabled. See [Issue 197](https://github.com/Marus/cortex-debug/issues/197). You can use this feature to issue a `continue` or request a gdb-server like OpenOCD to perform a sync, etc.
    * Added `openOCDPreConfigLaunchCommands` configuration option to `launch.json`. This is similar to `openOCDLaunchCommands` but are executed before any OpenOCD config files are loaded.
    * Added the ability to use an expression for the start address of a memory window. This can be any valid expression understood by GDB
-2. There are several changes related to RTOS thread aware debugging. In general, the experience is much better but we have become aware that many gdb-servers are not fully compliant or get out of sync with gdb and thus Cortex-Debug. This is especially true at the (re)start of a debug session.
+2. There are several changes related to RTOS thread aware debugging. In general, the experience is much better but we have become aware that many gdb-servers are not fully compliant or get out of sync with gdb and thus General-Debug. This is especially true at the (re)start of a debug session.
    * Better tracking of thread creation/exiting and the entire program exiting
    * When the debugger pauses due to any reason, the proper thread is highlighted in the Call Stack Window
    * Variables and Watch windows better track the current thread/frame. Same is true for hover and REPL; expressions evaluate in the context of the currently selected thread/frame in the Call Stack Window.
@@ -648,11 +648,11 @@ This is a pretty big release. The biggest change is to address C++ (and maybe Ru
 
 # V0.3.0
 
-## NOTE: Cortex-Debug is now only compatible with Visual Studio Code V1.34.0 or newer.
+## NOTE: General-Debug is now only compatible with Visual Studio Code V1.34.0 or newer.
 
 **NOTE: V0.3.0 has a few backwards incompatible changes that may require you to update your `launch.json` file.**
-1. The deprecated launch configuration types (`jlink-gdb`, `openocd-gdb`, `pyocd-gdb`, `stutil-gdb`, and `pe-gdb`) have now been removed - all launch configurations for Cortex-Debug should now use the `cortex-debug` type.
-2. There are now no SVD files bundled with the main Cortex-Debug extension; these SVD files added significant bulk to the download sizes for the main extension install and update while not being always needed and not changing often. The bundled SVD files will be separated out into separate "Device Support Pack" extensions that target particular microcontrollers (or families of microcontrollers); starting with packs for the STM32F1, STM32F4 and STM32L4 families that had been bundled previously. If you were using your own SVD file specified through the `svdFile` property in your `launch.json` then no configuration changes are needed, but if you were using one of the previously auto-detected SVD files through the `device` property then you will need to install the appropriate "Device Support Packs" (search for "Cortex-Debug" in the extension marketplace).
+1. The deprecated launch configuration types (`jlink-gdb`, `openocd-gdb`, `pyocd-gdb`, `stutil-gdb`, and `pe-gdb`) have now been removed - all launch configurations for General-Debug should now use the `general-debug` type.
+2. There are now no SVD files bundled with the main General-Debug extension; these SVD files added significant bulk to the download sizes for the main extension install and update while not being always needed and not changing often. The bundled SVD files will be separated out into separate "Device Support Pack" extensions that target particular microcontrollers (or families of microcontrollers); starting with packs for the STM32F1, STM32F4 and STM32L4 families that had been bundled previously. If you were using your own SVD file specified through the `svdFile` property in your `launch.json` then no configuration changes are needed, but if you were using one of the previously auto-detected SVD files through the `device` property then you will need to install the appropriate "Device Support Packs" (search for "General-Debug" in the extension marketplace).
 
 ### Other Changes in V0.3.0
 * Added support for formatting watch values; add the following format strings:
@@ -676,7 +676,7 @@ This is a pretty big release. The biggest change is to address C++ (and maybe Ru
 
 # V0.2.7
 
-* Added new `servertype` of external for cases where you want to control the GDB server yourself. This could be used for cases where you need to run the GDB server on a different machine, or in cases where there are multiple target cores which may cause the debug server to not operate as expected by cortex-debug. This configuration may require more customizations to the launch.json file than other more automated server types. When this `servertype` is selected a value for the `gdbTarget` launch.json property must be supplied.
+* Added new `servertype` of external for cases where you want to control the GDB server yourself. This could be used for cases where you need to run the GDB server on a different machine, or in cases where there are multiple target cores which may cause the debug server to not operate as expected by general-debug. This configuration may require more customizations to the launch.json file than other more automated server types. When this `servertype` is selected a value for the `gdbTarget` launch.json property must be supplied.
 * Added new launch.json options (overrideLaunchCommands, overrideRestartCommands and overrideAttachCommands) to be able to override the default commands run on those operations. In most cases this is not needed, but may be required for `external` server types (by default commands that are compatible with openocd are used for `external` server types).
 * Add a `overrideGDBServerStartedRegex` launch.json configuration option - this allows you to provide the system with an alternative regular expression to detect that the GDB server has completed launching and is ready to accept connections. In most cases this will be need - but may be useful in cases where the debug servers output has changed and is no longer recognized.
 * Major upgrade to the system for finding free ports to use (big thanks to https://github.com/haneefdm for his work on this); should fix recurring problems with port number collisions (e.g. 117(https://github.com/Marus/cortex-debug/issues/117)).
@@ -750,7 +750,7 @@ This is a pretty big release. The biggest change is to address C++ (and maybe Ru
 	* In general if you have RTOS support enabled you should not perform stepping operations before the RTOSs data structures/scheduler have been initialized. Doing so tends to either crash the GDB server or leave it in an inconsistent state which will prevent proper functionality. If you need to debug startup code before the RTOS has been completely initialized then you should disable RTOS support.
 * Some basic telemetry has been added
     * This telemetry has been added to help me determine what/how features are being used to help me better determine future feature development/improvements.
-	* No information about your projects source code is collected - only information directly related to the use of cortex-debug is collected. For example the following is collected:
+	* No information about your projects source code is collected - only information directly related to the use of general-debug is collected. For example the following is collected:
 	    * Number/length of debugging sessions
 		* Specific features used (peripheral register view, disassembly view, rtos support, memory view, SWO decoding, Graphing, etc.)
 		* Certain errors within the extension are reported
@@ -762,7 +762,7 @@ This is a pretty big release. The biggest change is to address C++ (and maybe Ru
 	* The information collected is not user-identifiable.
 	* You can disable all telemetry reporting through the following user/workspace settings:
 		* setting **telemetry.enableTelemetry** to false (this will disable telemetry for VS Code and other extensions that respect this setting)
-		* setting **cortex-debug.enableTelemetry** to false (this will disable telemetry just for Cortex-Debug)
+		* setting **general-debug.enableTelemetry** to false (this will disable telemetry just for General-Debug)
 * Improved support for customizing the launch, attach and restart processes. In most cases these parameters can simply be ignored - but for added flexibility the following settings in your launch.json file can be provided
 	* preLaunchCommands/preAttachCommands - these are executed near the start of the main launch/attach sequence (immediately after attaching to the target)
 	* postLaunchCommands/postAttachCommands - these are executed at the end of the main launch/attachSequence
@@ -803,15 +803,15 @@ This is a pretty big release. The biggest change is to address C++ (and maybe Ru
 
 # V0.1.10
 
-* The update has a significant refactoring of code to make supporting the expanding list of GDB Servers more feasible. From the user side this necessitates updating your launch.json files as all debug types have now been combined into one common *cortex-debug* type
-    * The typical changes needed are to replace *"type": "<server>-gdb" in your launch.json file with "type": "cortex-debug" and "servertype" : "<server>";
+* The update has a significant refactoring of code to make supporting the expanding list of GDB Servers more feasible. From the user side this necessitates updating your launch.json files as all debug types have now been combined into one common *general-debug* type
+    * The typical changes needed are to replace *"type": "<server>-gdb" in your launch.json file with "type": "general-debug" and "servertype" : "<server>";
 	* The extension will attempt to map old configurations automatically - but this may not work in all cases; additionally there launch.json editor will not recognize the old types any more
 	* You no longer specify paths to the individual tools in your launch.json file; now there are settings you can set (either user level or workspace level) for paths to the individual GDB servers as well as the arm toolchain. For the arm toolchain path the setting should point to the toolchains bin directory - not an individual executable - as multiple tools from the toolchain are now used (current arm-none-eabi-gdb and arm-none-eabi-objdump; but possibly others in the future)
 * A globals and static scope has been added to the variables view
 * A disassembly view has been added. This can show up in three possible ways:
-    * You can manually view the disassembly for a particular function by selecting the "Cortex-Debug: View Disassembly (Function) command from the command palette and entering the function name. (While you can view the disassembly in this case, stepping will still be based upon source lines currently)
+    * You can manually view the disassembly for a particular function by selecting the "General-Debug: View Disassembly (Function) command from the command palette and entering the function name. (While you can view the disassembly in this case, stepping will still be based upon source lines currently)
 	* If the source file cannot be located it will automatically disassemble and display the current function (In this case stepping is by instruction)
-	* You can force it to always disassemble through the "Cortex-Debug: Set Force Disassembly" command and selecting the "Forced" option.
+	* You can force it to always disassemble through the "General-Debug: Set Force Disassembly" command and selecting the "Forced" option.
 * SWO Decoding has been significantly overhauled
 	* It is now possible to use a serial port (such as a FTDI USB to UART) to capture SWO data, allowing the use of SWO output on probes that do not support it natively or have poor performance. To use this set the "source" key under "swoConfig" to the UART device (COM port on Windows).
 	* The ITM, DWT and TPIU registers needed to match the configuration in the launch.json file will be set automatically; avoiding the need for your firmware to make the configurations. SWO output will still need to be enabled in your firmware though, as this part of the configuration is microcontroller specific.

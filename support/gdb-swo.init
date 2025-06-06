@@ -20,7 +20,7 @@
 #
 
 #
-# Following variables are auto-defined by Cortex-Debug
+# Following variables are auto-defined by General-Debug
 #
 # $swoFreq  -- Baud rate (freq in Hz) from launch.json (swoConfig.swoFrequency)
 # $cpuFreq  -- CPU Freq. in Hz from launch.json (swoConfig.cpuFrequency)
@@ -66,7 +66,7 @@ define SWO_Init
 # ITM->TPR = ITM_TPR_PRIVMASK_Msk
 	set *($ITM_BASE + 0x00E40) = 0xF
 
-# ITM->TER = bit-mask calculated by Cortex-Debug. You can set it to 0xFFFFFFFF if you like
+# ITM->TER = bit-mask calculated by General-Debug. You can set it to 0xFFFFFFFF if you like
 	set *($ITM_BASE + 0x00E00) = $swoPortMask
 
 # DWT_CTRL

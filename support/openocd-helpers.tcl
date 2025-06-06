@@ -1,5 +1,5 @@
 #
-# Cortex-Debug extension calls this function during initialization. You can copy this
+# General-Debug extension calls this function during initialization. You can copy this
 # file, modify it and specifyy it as one of the config files supplied in launch.json
 # preferably at the beginning.
 #
@@ -7,7 +7,7 @@
 # for SWO.
 #
 set USE_SWO 0
-proc CDSWOConfigure { CDCPUFreqHz CDSWOFreqHz CDSWOOutput } {    
+proc CDSWOConfigure { CDCPUFreqHz CDSWOFreqHz CDSWOOutput } {
     # We don't create/configure the entire TPIU which requires advanced knowledge of the device
     # like which DAP/AP ports to use, what their bases addresses are, etc. That should already
     # be done by the config files from the Silicon Vendor

@@ -13,7 +13,7 @@ Please visit the correct repo to file an feature request. If this is an feature 
 * RTOS Viewer: [https://github.com/mcu-debug/rtos-views](https://github.com/mcu-debug/rtos-views)
 * the debugger itself, continue below
 
-Please read our documentation as well. You have a lot of control over how Cortex-Debug works. Besides the top level README.md, we have the following
+Please read our documentation as well. You have a lot of control over how General-Debug works. Besides the top level README.md, we have the following
 
 https://github.com/Marus/cortex-debug/wiki
 https://github.com/Marus/cortex-debug/wikiCortex-Debug-Under-the-hood
